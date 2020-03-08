@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="dc2c8312-1d6d-4722-a585-66f7a6acff64" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ProjectId" id="1YnPBp4OQxT3SYGwtqlFxj0z3ps" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../LearnToSolveClassImbalance" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="RunManager">
+    <configuration name="Test_Main" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="OCT_MICCAI" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="$USER_HOME$/anaconda3/envs/HRCT_lung_vessel_segmentation/bin/python" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Test_Main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="dc2c8312-1d6d-4722-a585-66f7a6acff64" name="Default Changelist" comment="" />
+      <created>1583575251575</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1583575251575</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="3331" y="377" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1583575291101">
+      <screen x="2560" y="0" width="2560" height="1440" />
+    </state>
+    <state x="3331" y="377" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.27.2560.1413/2560.0.2560.1440@2560.0.2560.1440" timestamp="1583575291101" />
+    <state x="3656" y="477" width="424" height="484" key="FileChooserDialogImpl" timestamp="1583590702113">
+      <screen x="2560" y="0" width="2560" height="1440" />
+    </state>
+    <state x="3656" y="477" width="424" height="484" key="FileChooserDialogImpl/0.27.2560.1413/2560.0.2560.1440@2560.0.2560.1440" timestamp="1583590702113" />
+    <state width="2470" height="368" key="GridCell.Tab.0.bottom" timestamp="1583687862426">
+      <screen x="2560" y="0" width="2560" height="1440" />
+    </state>
+    <state width="2470" height="368" key="GridCell.Tab.0.bottom/0.27.2560.1413/2560.0.2560.1440@2560.0.2560.1440" timestamp="1583687862426" />
+    <state width="2470" height="368" key="GridCell.Tab.0.center" timestamp="1583687862426">
+      <screen x="2560" y="0" width="2560" height="1440" />
+    </state>
+    <state width="2470" height="368" key="GridCell.Tab.0.center/0.27.2560.1413/2560.0.2560.1440@2560.0.2560.1440" timestamp="1583687862426" />
+    <state width="2470" height="368" key="GridCell.Tab.0.left" timestamp="1583687862426">
+      <screen x="2560" y="0" width="2560" height="1440" />
+    </state>
+    <state width="2470" height="368" key="GridCell.Tab.0.left/0.27.2560.1413/2560.0.2560.1440@2560.0.2560.1440" timestamp="1583687862426" />
+    <state width="2470" height="368" key="GridCell.Tab.0.right" timestamp="1583687862426">
+      <screen x="2560" y="0" width="2560" height="1440" />
+    </state>
+    <state width="2470" height="368" key="GridCell.Tab.0.right/0.27.2560.1413/2560.0.2560.1440@2560.0.2560.1440" timestamp="1583687862426" />
+    <state x="2739" y="354" key="SettingsEditor" timestamp="1583575349801">
+      <screen x="2560" y="0" width="2560" height="1440" />
+    </state>
+    <state x="2739" y="354" key="SettingsEditor/0.27.2560.1413/2560.0.2560.1440@2560.0.2560.1440" timestamp="1583575349801" />
+  </component>
+</project>
