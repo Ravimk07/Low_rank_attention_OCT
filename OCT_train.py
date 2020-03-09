@@ -17,13 +17,14 @@ from torch.autograd import grad
 # ================================================
 from NNBaselines import SegNet
 from SecondOrderAttentionStripNet import SOASNet
+from SOASNet_v2 import SOASNet_v2
 from adamW import AdamW
 # =============================
 from NNUtils import getData_OCT
 # =============================
 
 
-def trainModels(repeat, input_dim, task_order, train_batch, model, epochs, width, l_r, l_r_s, shuffle, data_augmentation, loss, norm, log, class_no, depth, cluster=False):
+def trainModels(repeat, input_dim, train_batch, model, epochs, width, l_r, l_r_s, shuffle, data_augmentation, loss, norm, log, class_no, depth, depth_limit, cluster=False):
     #
     if cluster is False:
         #
@@ -31,9 +32,9 @@ def trainModels(repeat, input_dim, task_order, train_batch, model, epochs, width
         #
     else:
         #
-        data_directory = '/cluster/project9/CKT_Project/projects_data/OCT/'
+        data_directory = '/cluster/project0/CityScapes/projects_data/OCT/'
         #
-    trainloader, train_dataset, validate_dataset, test_dataset = getData_OCT(data_directory, train_batch, shuffle_mode=shuffle, augmentation=data_augmentation)
+    trainloader, train_dataset, validate_dataset, test_dataset_1, test_dataset_2 = getData_OCT(data_directory, train_batch, shuffle_mode=shuffle, augmentation=data_augmentation)
     #
     for j in range(1, repeat+1, 1):
         #
@@ -43,12 +44,12 @@ def trainModels(repeat, input_dim, task_order, train_batch, model, epochs, width
                                          lr=l_r,
                                          repeat=str(j),
                                          lr_scedule=l_r_s,
-                                         task_order=task_order,
                                          train_dataset=train_dataset,
                                          train_batch=train_batch,
                                          train_loader=trainloader,
                                          validate_data=validate_dataset,
-                                         test_data=test_dataset,
+                                         test_data_1=test_dataset_1,
+                                         test_data_2=test_dataset_2,
                                          data_augmentation=data_augmentation,
                                          shuffle=shuffle,
                                          loss=loss,
@@ -56,23 +57,25 @@ def trainModels(repeat, input_dim, task_order, train_batch, model, epochs, width
                                          log=log,
                                          no_class=class_no,
                                          input_channel=input_dim,
-                                         depth=depth)
+                                         depth=depth,
+                                         depth_limit=depth_limit)
 
 
 def trainSingleModel(model_name,
+                     depth_limit,
                      epochs,
                      width,
                      depth,
                      repeat,
                      lr,
                      lr_scedule,
-                     task_order,
                      train_dataset,
                      train_batch,
                      data_augmentation,
                      train_loader,
                      validate_data,
-                     test_data,
+                     test_data_1,
+                     test_data_2,
                      shuffle,
                      loss,
                      norm,
@@ -108,7 +111,7 @@ def trainSingleModel(model_name,
 
     if model_name == 'unet':
 
-        model = SOASNet(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='unet', side_output=False, downsampling_limit=6).to(device=device)
+        model = SOASNet(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='unet', side_output=False, downsampling_limit=depth_limit).to(device=device)
 
     elif model_name == 'Segnet':
 
@@ -116,7 +119,11 @@ def trainSingleModel(model_name,
 
     elif model_name == 'TripleNet':
 
-        model = SOASNet(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='low_rank_attn', side_output=False, downsampling_limit=3).to(device=device)
+        model = SOASNet(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='low_rank_attn', side_output=False, downsampling_limit=depth_limit).to(device=device)
+
+    elif model_name == 'TripleNet_v2':
+
+        model = SOASNet_v2(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='low_rank_attn', side_output=False, downsampling_limit=depth_limit).to(device=device)
 
     # ==================================
     training_amount = len(train_dataset)
@@ -131,7 +138,6 @@ def trainSingleModel(model_name,
                  '_ShuffleTraining_' + str(shuffle) + \
                  '_Data_Augmentation_' + data_augmentation + '_' + \
                  '_lr_' + str(lr) + \
-                 '_Task_order_' + task_order + \
                  '_Repeat_' + str(repeat)
 
     print(model_name)
@@ -203,7 +209,7 @@ def trainSingleModel(model_name,
 
                         outputs = torch.sigmoid(outputs_logits)
 
-                        outputs = (outputs > 0.5).float()
+                        # outputs = (outputs > 0.5).float()
 
                     else:
 
@@ -327,12 +333,16 @@ def trainSingleModel(model_name,
                 param_group['lr'] = lr*((1 - epoch / epochs)**0.999)
 
     # save model
-    save_folder = '../../saved_models/' + log
+    save_folder = '../../saved_models_' + log
 
     try:
+
         os.makedirs(save_folder)
+
     except OSError as exc:
+
         if exc.errno != errno.EEXIST:
+
             raise
     pass
 
@@ -353,16 +363,34 @@ def trainSingleModel(model_name,
             raise
     pass
 
-    test_iou, test_f1, test_recall, test_precision = test(data=test_data, model=model, device=device, class_no=no_class, save_location=save_results_folder)
+    test_iou_1, test_f1_1, test_recall_1, test_precision_1, mse_1, test_iou_2, test_f1_2, test_recall_2, test_precision_2, mse_2 = test(data_1=test_data_1,
+                                                                                                                                        data_2=test_data_2,
+                                                                                                                                        model=model,
+                                                                                                                                        device=device,
+                                                                                                                                        class_no=no_class,
+                                                                                                                                        save_location=save_results_folder)
 
     print(
-        'test iou: {:.4f}, '
-        'test f1: {:.4f},'
-        'test recall: {:.4f}, '
-        'test precision: {:.4f}, '.format(test_iou,
-                                          test_f1,
-                                          test_recall,
-                                          test_precision))
+        'test iou data 1: {:.4f}, '
+        'test mse data 1: {:.4f}, '
+        'test f1 data 1: {:.4f},'
+        'test recall data 1: {:.4f}, '
+        'test precision data 1: {:.4f}, '.format(test_iou_1,
+                                                 mse_1,
+                                                 test_f1_1,
+                                                 test_recall_1,
+                                                 test_precision_1))
+
+    print(
+        'test iou data 2: {:.4f}, '
+        'test mse data 2: {:.4f}, '
+        'test f1 data 2: {:.4f},'
+        'test recall data 2: {:.4f}, '
+        'test precision data 2: {:.4f}, '.format(test_iou_2,
+                                                 mse_2,
+                                                 test_f1_2,
+                                                 test_recall_2,
+                                                 test_precision_2))
 
     print('\nTesting finished and results saved.\n')
 

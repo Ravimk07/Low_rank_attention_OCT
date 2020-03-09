@@ -112,19 +112,23 @@ def getData_OCT(data_directory, train_batchsize, shuffle_mode, augmentation):
     validate_image_folder = data_directory + 'val/images'
     validate_label_folder = data_directory + 'val/masks'
 
-    test_image_folder = data_directory + 'test/images'
-    test_label_folder = data_directory + 'test/masks'
-    #
+    test_image_folder_1 = data_directory + 'test_1/images'
+    test_label_folder_1 = data_directory + 'test_1/masks'
+
+    test_image_folder_2 = data_directory + 'test_2/images'
+    test_label_folder_2 = data_directory + 'test_2/masks'
+
     train_dataset = CustomDataset_OCT(train_image_folder, train_label_folder, teacher_student=False, transforms=augmentation)
     validate_dataset = CustomDataset_OCT(validate_image_folder, validate_label_folder, teacher_student=False, transforms=augmentation)
-    test_dataset = CustomDataset_OCT(test_image_folder, test_label_folder, teacher_student=False, transforms='none')
+    test_dataset_1 = CustomDataset_OCT(test_image_folder_1, test_label_folder_1, teacher_student=False, transforms=augmentation)
+    test_dataset_2 = CustomDataset_OCT(test_image_folder_2, test_label_folder_2, teacher_student=False, transforms=augmentation)
 
     num_cores = 4
 
     trainloader = data.DataLoader(train_dataset, batch_size=train_batchsize, shuffle=shuffle_mode, num_workers=2*num_cores, drop_last=False)
     valloader = data.DataLoader(validate_dataset, batch_size=2, shuffle=False, num_workers=2, drop_last=False)
 
-    return trainloader, train_dataset, valloader, test_dataset
+    return trainloader, train_dataset, valloader, test_dataset_1, test_dataset_2
 
 
 class CustomDataset_OCT(torch.utils.data.Dataset):
@@ -151,12 +155,21 @@ class CustomDataset_OCT(torch.utils.data.Dataset):
         image = np.array(image, dtype='float32')
         label = np.load(all_labels[index])
         label = np.array(label, dtype='float32')
-
-        # (height, width, c) = image.shape
-        (height, width) = image.shape
+        #
+        image_dim_total = len(image.shape)
+        #
+        if image_dim_total == 2:
+            #
+            (height, width) = image.shape
+            #
+        elif image_dim_total == 3:
+            #
+            (height, width, c) = image.shape
+            image = image[:, :, 0]
+            #
         label = label.reshape(1, height, width)
         image = image.reshape(1, height, width)
-
+        #
         # get the name of the file:
         labelname = all_images[index]
         labelname, extenstion = os.path.splitext(labelname)
@@ -267,39 +280,20 @@ def evaluate(data, model, device, class_no):
         recall = 0
         precision = 0
         #
-        validate_number = 50
-        #
-        evaluate_index = random.sample(range(0, len(data)-1),  min(validate_number, len(data) - 1))
-        #
         # for index in evaluate_index:
         for j, (testimg, testlabel, testimgname) in enumerate(data):
-            # extract a few random indexs every time in a range of the data
-            # testimg, testlabel, test_imagename = data[index]
+
             # ===========================================================
             # ===========================================================
-            # testimg = torch.from_numpy(testimg).to(device=device, dtype=torch.float32)
-            # testlabel = torch.from_numpy(testlabel).to(device=device, dtype=torch.float32)
+
             testimg = testimg.to(device=device, dtype=torch.float32)
+
             testlabel = testlabel.to(device=device, dtype=torch.float32)
-            # c, h, w = testimg.size()
-            # testimg = testimg.expand(1, c, h, w)
 
             testoutput = model(testimg)
 
-            # if 'ms_fp' in model_name:
-            #     #
-            #     testoutput = model(testimg)
-            # else:
-            #     #
-            #     testoutput = model(testimg)
-                # testoutput, embedding1, embedding2, embedding3, embedding4, embedding5 = model(testimg)
-
-            # testoutput, embedding1, embedding2, embedding3, embedding4, embedding5 = model(testimg)
-
             if class_no == 2:
                 #
-                # testoutput = torch.sigmoid(testoutput.view(1, h, w))
-                # testoutput = (testoutput > 0.5).float()
                 testoutput = torch.sigmoid(testoutput)
                 testoutput = (testoutput > 0.5).float()
                 #
@@ -319,46 +313,45 @@ def evaluate(data, model, device, class_no):
     return test_iou / (j + 1), f1 / (j + 1), recall / (j + 1), precision / (j + 1)
 
 
-def test(data, model, device, class_no, save_location):
+def test(data_1, data_2, model, device, class_no, save_location):
 
     model.eval()
 
     with torch.no_grad():
         #
-        f1 = 0
-        test_iou = 0
-        # test_h_dist = 0
-        recall = 0
-        precision = 0
+        f1_1 = 0
+        test_iou_1 = 0
+        # test_h_dist_1 = 0
+        recall_1 = 0
+        precision_1 = 0
+        mse_1 = 0
         #
-        # effective_h_dist_count = 0
+        f1_2 = 0
+        test_iou_2 = 0
+        # test_h_dist_2 = 0
+        recall_2 = 0
+        precision_2 = 0
+        mse_2 = 0
         #
-        # test_number = 200
+        # ============================================
+        evaluate_index_all_1 = range(0, len(data_1) - 1)
         #
-        # evaluate_index_all = range(0, len(data) - 1)
-        evaluate_index_all = range(0, 5)
+        # ============================================
+        evaluate_index_all_2 = range(0, len(data_2) - 1)
         #
-        for index in evaluate_index_all:
+        for j, (testimg, testlabel, testimgname) in enumerate(data_1):
             # extract a few random indexs every time in a range of the data
-            testimg, testlabel, test_imagename = data[index]
             # ========================================================================
             # ========================================================================
+            #
             testimg = torch.from_numpy(testimg).to(device=device, dtype=torch.float32)
             testlabel = torch.from_numpy(testlabel).to(device=device, dtype=torch.float32)
             #
             c, h, w = testimg.size()
             testimg = testimg.expand(1, c, h, w)
             #
-
             testoutput_original = model(testimg)
-
-            # if '3Unet' in model_name:
-            #     testoutput_original, embedding = model(testimg)
-            # elif 'ms_fp' in model_name:
-            #     testoutput_original = model(testimg)
-            # else:
-            #     testoutput_original, embedding1, embedding2, embedding3, embedding4, embedding5 = model(testimg)
-            # #
+            #
             if class_no == 2:
                 #
                 testoutput = torch.sigmoid(testoutput_original.view(1, h, w))
@@ -372,19 +365,13 @@ def test(data, model, device, class_no, save_location):
 
             f1_, recall_, precision_ = f1_score(testlabel.cpu().detach().numpy(), testoutput.cpu().detach().numpy(), class_no)
 
-            f1 += f1_
-            test_iou += mean_iu_
-            recall += recall_
-            precision += precision_
-            #
-            prediction_map_path = save_location + '/' + 'Results_map'
-            #
-            try:
-                os.mkdir(prediction_map_path)
-            except OSError as exc:
-                if exc.errno != errno.EEXIST:
-                    raise
-                pass
+            mse_ = (np.square(testlabel.cpu().detach().numpy() - testoutput.cpu().detach().numpy())).mean()
+
+            f1_1 += f1_
+            test_iou_1 += mean_iu_
+            recall_1 += recall_
+            precision_1 += precision_
+            mse_1 += mse_
             #
             # # Plotting segmentation:
             # testoutput_original = np.asarray(testoutput_original.cpu().detach().numpy(), dtype=np.uint8)
@@ -448,14 +435,129 @@ def test(data, model, device, class_no, save_location):
             # full_error_map_name = os.path.join(prediction_map_path, prediction_name)
             # imageio.imsave(full_error_map_name, segmentation_map)
 
+        for j, (testimg, testlabel, testimgname) in enumerate(data_2):
+            #
+            # ========================================================================
+            # ========================================================================
+            testimg = torch.from_numpy(testimg).to(device=device, dtype=torch.float32)
+            testlabel = torch.from_numpy(testlabel).to(device=device, dtype=torch.float32)
+            #
+            c, h, w = testimg.size()
+            testimg = testimg.expand(1, c, h, w)
+            #
+            testoutput_original = model(testimg)
+            #
+            if class_no == 2:
+                #
+                testoutput = torch.sigmoid(testoutput_original.view(1, h, w))
+                testoutput = (testoutput > 0.5).float()
+                #
+            else:
+                #
+                _, testoutput_original = torch.max(testoutput_original, dim=1)
+
+            mean_iu_ = segmentation_scores(testlabel.cpu().detach().numpy(), testoutput.cpu().detach().numpy(), class_no)
+
+            f1_, recall_, precision_ = f1_score(testlabel.cpu().detach().numpy(), testoutput.cpu().detach().numpy(), class_no)
+
+            mse_ = (np.square(testlabel.cpu().detach().numpy() - testoutput.cpu().detach().numpy())).mean()
+
+            f1_2 += f1_
+            test_iou_2 += mean_iu_
+            recall_2 += recall_
+            precision_2 += precision_
+            mse_2 += mse_
+            #
+            #
+            # # Plotting segmentation:
+            # testoutput_original = np.asarray(testoutput_original.cpu().detach().numpy(), dtype=np.uint8)
+            # testoutput_original = np.squeeze(testoutput_original, axis=0)
+            # testoutput_original = np.repeat(testoutput_original[:, :, np.newaxis], 3, axis=2)
+            # #
+            # if class_no == 2:
+            #     segmentation_map = np.zeros((h, w, 3), dtype=np.uint8)
+            #     #
+            #     segmentation_map[:, :, 0][np.logical_and(testoutput_original[:, :, 0] == 1, testoutput_original[:, :, 1] == 1, testoutput_original[:, :, 2] == 1)] = 255
+            #     segmentation_map[:, :, 1][np.logical_and(testoutput_original[:, :, 0] == 1, testoutput_original[:, :, 1] == 1, testoutput_original[:, :, 2] == 1)] = 0
+            #     segmentation_map[:, :, 2][np.logical_and(testoutput_original[:, :, 0] == 1, testoutput_original[:, :, 1] == 1, testoutput_original[:, :, 2] == 1)] = 0
+            #     #
+            # else:
+            #     segmentation_map = np.zeros((h, w, 3), dtype=np.uint8)
+            #     if class_no == 4:
+            #         # multi class for brats 2018
+            #         segmentation_map[:, :, 0][np.logical_and(testoutput_original[:, :, 0] == 1, testoutput_original[:, :, 1] == 1, testoutput_original[:, :, 2] == 1)] = 255
+            #         segmentation_map[:, :, 1][np.logical_and(testoutput_original[:, :, 0] == 1, testoutput_original[:, :, 1] == 1, testoutput_original[:, :, 2] == 1)] = 0
+            #         segmentation_map[:, :, 2][np.logical_and(testoutput_original[:, :, 0] == 1, testoutput_original[:, :, 1] == 1, testoutput_original[:, :, 2] == 1)] = 0
+            #         #
+            #         segmentation_map[:, :, 0][np.logical_and(testoutput_original[:, :, 0] == 2, testoutput_original[:, :, 1] == 2, testoutput_original[:, :, 2] == 2)] = 0
+            #         segmentation_map[:, :, 1][np.logical_and(testoutput_original[:, :, 0] == 2, testoutput_original[:, :, 1] == 2, testoutput_original[:, :, 2] == 2)] = 255
+            #         segmentation_map[:, :, 2][np.logical_and(testoutput_original[:, :, 0] == 2, testoutput_original[:, :, 1] == 2, testoutput_original[:, :, 2] == 2)] = 0
+            #         #
+            #         segmentation_map[:, :, 0][np.logical_and(testoutput_original[:, :, 0] == 3, testoutput_original[:, :, 1] == 3, testoutput_original[:, :, 2] == 3)] = 0
+            #         segmentation_map[:, :, 1][np.logical_and(testoutput_original[:, :, 0] == 3, testoutput_original[:, :, 1] == 3, testoutput_original[:, :, 2] == 3)] = 0
+            #         segmentation_map[:, :, 2][np.logical_and(testoutput_original[:, :, 0] == 3, testoutput_original[:, :, 1] == 3, testoutput_original[:, :, 2] == 3)] = 255
+            #         #
+            #     elif class_no == 8:
+            #         # multi class for cityscapes
+            #         segmentation_map[:, :, 0][np.logical_and(testoutput_original[:, :, 0] == 0, testoutput_original[:, :, 1] == 0, testoutput_original[:, :, 2] == 0)] = 255
+            #         segmentation_map[:, :, 1][np.logical_and(testoutput_original[:, :, 0] == 0, testoutput_original[:, :, 1] == 0, testoutput_original[:, :, 2] == 0)] = 0
+            #         segmentation_map[:, :, 2][np.logical_and(testoutput_original[:, :, 0] == 0, testoutput_original[:, :, 1] == 0, testoutput_original[:, :, 2] == 0)] = 0
+            #         #
+            #         segmentation_map[:, :, 0][np.logical_and(testoutput_original[:, :, 0] == 1, testoutput_original[:, :, 1] == 1, testoutput_original[:, :, 2] == 1)] = 0
+            #         segmentation_map[:, :, 1][np.logical_and(testoutput_original[:, :, 0] == 1, testoutput_original[:, :, 1] == 1, testoutput_original[:, :, 2] == 1)] = 255
+            #         segmentation_map[:, :, 2][np.logical_and(testoutput_original[:, :, 0] == 1, testoutput_original[:, :, 1] == 1, testoutput_original[:, :, 2] == 1)] = 0
+            #         #
+            #         segmentation_map[:, :, 0][np.logical_and(testoutput_original[:, :, 0] == 2, testoutput_original[:, :, 1] == 2, testoutput_original[:, :, 2] == 2)] = 0
+            #         segmentation_map[:, :, 1][np.logical_and(testoutput_original[:, :, 0] == 2, testoutput_original[:, :, 1] == 2, testoutput_original[:, :, 2] == 2)] = 0
+            #         segmentation_map[:, :, 2][np.logical_and(testoutput_original[:, :, 0] == 2, testoutput_original[:, :, 1] == 2, testoutput_original[:, :, 2] == 2)] = 255
+            #         #
+            #         segmentation_map[:, :, 0][np.logical_and(testoutput_original[:, :, 0] == 3, testoutput_original[:, :, 1] == 3, testoutput_original[:, :, 2] == 3)] = 255
+            #         segmentation_map[:, :, 1][np.logical_and(testoutput_original[:, :, 0] == 3, testoutput_original[:, :, 1] == 3, testoutput_original[:, :, 2] == 3)] = 255
+            #         segmentation_map[:, :, 2][np.logical_and(testoutput_original[:, :, 0] == 3, testoutput_original[:, :, 1] == 3, testoutput_original[:, :, 2] == 3)] = 0
+            #         #
+            #         segmentation_map[:, :, 0][np.logical_and(testoutput_original[:, :, 0] == 4, testoutput_original[:, :, 1] == 4, testoutput_original[:, :, 2] == 4)] = 153
+            #         segmentation_map[:, :, 1][np.logical_and(testoutput_original[:, :, 0] == 4, testoutput_original[:, :, 1] == 4, testoutput_original[:, :, 2] == 4)] = 51
+            #         segmentation_map[:, :, 2][np.logical_and(testoutput_original[:, :, 0] == 4, testoutput_original[:, :, 1] == 4, testoutput_original[:, :, 2] == 4)] = 255
+            #         #
+            #         segmentation_map[:, :, 0][np.logical_and(testoutput_original[:, :, 0] == 5, testoutput_original[:, :, 1] == 5, testoutput_original[:, :, 2] == 5)] = 255
+            #         segmentation_map[:, :, 1][np.logical_and(testoutput_original[:, :, 0] == 5, testoutput_original[:, :, 1] == 5, testoutput_original[:, :, 2] == 5)] = 102
+            #         segmentation_map[:, :, 2][np.logical_and(testoutput_original[:, :, 0] == 5, testoutput_original[:, :, 1] == 5, testoutput_original[:, :, 2] == 5)] = 178
+            #         #
+            #         segmentation_map[:, :, 0][np.logical_and(testoutput_original[:, :, 0] == 6, testoutput_original[:, :, 1] == 6, testoutput_original[:, :, 2] == 6)] = 102
+            #         segmentation_map[:, :, 1][np.logical_and(testoutput_original[:, :, 0] == 6, testoutput_original[:, :, 1] == 6, testoutput_original[:, :, 2] == 6)] = 255
+            #         segmentation_map[:, :, 2][np.logical_and(testoutput_original[:, :, 0] == 6, testoutput_original[:, :, 1] == 6, testoutput_original[:, :, 2] == 6)] = 102
+            #         #
+            # prediction_name = 'seg_' + test_imagename + '.png'
+            # full_error_map_name = os.path.join(prediction_map_path, prediction_name)
+            # imageio.imsave(full_error_map_name, segmentation_map)
+    #
+    prediction_map_path = save_location + '/' + 'Results_map'
+    #
+    try:
+        os.mkdir(prediction_map_path)
+    except OSError as exc:
+        if exc.errno != errno.EEXIST:
+            raise
+        pass
     # save numerical results:
-    result_dictionary = {'Test IoU': str(test_iou / len(evaluate_index_all)), 'Test f1': str(f1 / len(evaluate_index_all)), 'Test recall': str(recall / len(evaluate_index_all)), 'Test Precision': str(precision / len(evaluate_index_all))}
-    ff_path = prediction_map_path + '/test_result.txt'
+    result_dictionary = {'Test IoU data 1': str(test_iou_1 / len(evaluate_index_all_1)),
+                         'Test f1 data 1': str(f1_1 / len(evaluate_index_all_1)),
+                         'Test recall data 1': str(recall_1 / len(evaluate_index_all_1)),
+                         'Test Precision data 1': str(precision_1 / len(evaluate_index_all_1)),
+                         'Test MSE data 1': str(mse_1 / len(evaluate_index_all_1)),
+                         'Test IoU data 2': str(test_iou_2 / len(evaluate_index_all_2)),
+                         'Test f1 data 2': str(f1_2 / len(evaluate_index_all_2)),
+                         'Test recall data 2': str(recall_2 / len(evaluate_index_all_2)),
+                         'Test Precision data 2': str(precision_2 / len(evaluate_index_all_2)),
+                         'Test MSE data 2': str(mse_2 / len(evaluate_index_all_2)),}
+
+    ff_path = prediction_map_path + '/test_result_data.txt'
     ff = open(ff_path, 'w')
     ff.write(str(result_dictionary))
     ff.close()
-
-    return test_iou / len(evaluate_index_all), f1 / len(evaluate_index_all), recall / len(evaluate_index_all), precision / len(evaluate_index_all)
+    #
+    return test_iou_1 / len(evaluate_index_all_1), f1_1 / len(evaluate_index_all_1), recall_1 / len(evaluate_index_all_1), precision_1 / len(evaluate_index_all_1), mse_1 / len(evaluate_index_all_1), \
+           test_iou_2 / len(evaluate_index_all_2), f1_2 / len(evaluate_index_all_2), recall_2 / len(evaluate_index_all_2), precision_2 / len(evaluate_index_all_2), mse_2 / len(evaluate_index_all_2)
 
 
 class EWC(object):
