@@ -18,6 +18,7 @@ from torch.autograd import grad
 from NNBaselines import SegNet
 from SecondOrderAttentionStripNet import SOASNet
 from SOASNet_v2 import SOASNet_v2
+from SOASNet_v3 import SOASNet_v3
 from adamW import AdamW
 # =============================
 from NNUtils import getData_OCT
@@ -124,6 +125,10 @@ def trainSingleModel(model_name,
     elif model_name == 'TripleNet_v2':
 
         model = SOASNet_v2(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='low_rank_attn', side_output=False, downsampling_limit=depth_limit).to(device=device)
+
+    elif model_name == 'TripleNet_v3':
+
+        model = SOASNet_v3(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='low_rank_attn', side_output=False, downsampling_limit=depth_limit).to(device=device)
 
     # ==================================
     training_amount = len(train_dataset)
