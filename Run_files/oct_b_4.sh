@@ -2,6 +2,6 @@
 #$ -l gpu=true
 #$ -S /bin/bash
 #$ -j y
-#$ -wd /cluster/project0/CityScapes/projects_codes/Experiments
+#$ -wd /cluster/project0/CityScapes/projects_codes/MICCAI_2020_OCT
 
 ~/anaconda3/bin/python baseline_unet_no_aug.py
