@@ -4,4 +4,4 @@
 #$ -j y
 #$ -wd /cluster/project0/CityScapes/projects_codes/Experiments
 
-~/anaconda3/bin/python baseline_unet.py
+~/anaconda3/bin/python baseline_unet_no_aug.py
