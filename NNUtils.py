@@ -333,10 +333,10 @@ def test(data_1, data_2, model, device, class_no, save_location):
         precision_2 = 0
         mse_2 = 0
         #
-        # ============================================
+        # ==============================================
         evaluate_index_all_1 = range(0, len(data_1) - 1)
         #
-        # ============================================
+        # ==============================================
         evaluate_index_all_2 = range(0, len(data_2) - 1)
         #
         for j, (testimg, testlabel, testimgname) in enumerate(data_1):

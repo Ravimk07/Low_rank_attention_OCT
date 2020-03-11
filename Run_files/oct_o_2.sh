@@ -4,4 +4,4 @@
 #$ -j y
 #$ -wd /cluster/project0/CityScapes/projects_codes/MICCAI_2020_OCT/Experiments
 
-~/anaconda3/bin/python ours_v1_no_aug.py
+~/anaconda3/bin/python ours_v3_no_aug.py
