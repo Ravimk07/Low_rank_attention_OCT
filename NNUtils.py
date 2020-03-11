@@ -317,6 +317,9 @@ def test(data_1, data_2, model, device, class_no, save_location):
 
     model.eval()
 
+    data_1_testoutputs = []
+    data_2_testoutputs = []
+
     with torch.no_grad():
         #
         f1_1 = 0
@@ -345,6 +348,7 @@ def test(data_1, data_2, model, device, class_no, save_location):
             # ========================================================================
             #
             testimg = torch.from_numpy(testimg).to(device=device, dtype=torch.float32)
+            #
             testlabel = torch.from_numpy(testlabel).to(device=device, dtype=torch.float32)
             #
             c, h, w = testimg.size()
@@ -356,6 +360,7 @@ def test(data_1, data_2, model, device, class_no, save_location):
                 #
                 testoutput = torch.sigmoid(testoutput_original.view(1, h, w))
                 testoutput = (testoutput > 0.5).float()
+                data_1_testoutputs.append(testoutput)
                 #
             else:
                 #
@@ -451,6 +456,7 @@ def test(data_1, data_2, model, device, class_no, save_location):
                 #
                 testoutput = torch.sigmoid(testoutput_original.view(1, h, w))
                 testoutput = (testoutput > 0.5).float()
+                data_2_testoutputs.append(testoutput)
                 #
             else:
                 #
@@ -557,7 +563,8 @@ def test(data_1, data_2, model, device, class_no, save_location):
     ff.close()
     #
     return test_iou_1 / len(evaluate_index_all_1), f1_1 / len(evaluate_index_all_1), recall_1 / len(evaluate_index_all_1), precision_1 / len(evaluate_index_all_1), mse_1 / len(evaluate_index_all_1), \
-           test_iou_2 / len(evaluate_index_all_2), f1_2 / len(evaluate_index_all_2), recall_2 / len(evaluate_index_all_2), precision_2 / len(evaluate_index_all_2), mse_2 / len(evaluate_index_all_2)
+           test_iou_2 / len(evaluate_index_all_2), f1_2 / len(evaluate_index_all_2), recall_2 / len(evaluate_index_all_2), precision_2 / len(evaluate_index_all_2), mse_2 / len(evaluate_index_all_2), \
+           data_1_testoutputs, data_2_testoutputs
 
 
 class EWC(object):

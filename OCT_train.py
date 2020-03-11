@@ -368,12 +368,12 @@ def trainSingleModel(model_name,
             raise
     pass
 
-    test_iou_1, test_f1_1, test_recall_1, test_precision_1, mse_1, test_iou_2, test_f1_2, test_recall_2, test_precision_2, mse_2 = test(data_1=test_data_1,
-                                                                                                                                        data_2=test_data_2,
-                                                                                                                                        model=model,
-                                                                                                                                        device=device,
-                                                                                                                                        class_no=no_class,
-                                                                                                                                        save_location=save_results_folder)
+    test_iou_1, test_f1_1, test_recall_1, test_precision_1, mse_1, test_iou_2, test_f1_2, test_recall_2, test_precision_2, mse_2, outputs_1, outputs_2 = test(data_1=test_data_1,
+                                                                                                                                                              data_2=test_data_2,
+                                                                                                                                                              model=model,
+                                                                                                                                                              device=device,
+                                                                                                                                                              class_no=no_class,
+                                                                                                                                                              save_location=save_results_folder)
 
     print(
         'test iou data 1: {:.4f}, '
