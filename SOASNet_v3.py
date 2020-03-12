@@ -174,17 +174,17 @@ class SOASNet_v3(nn.Module):
 
                     encoders_output_channels_side = width // 2
 
-                    self.width_encoders_first_group_1 = conv_block(in_channels=width // 2, out_channels=width // 2, kernel_h=1, kernel_w=2, step_h=1, step_w=2, padding_w=0, padding_h=0, norm=norm, group=width // 2)
+                    self.width_encoders_first_group_1 = conv_block(in_channels=width // 2, out_channels=width // 2, kernel_h=1, kernel_w=2, step_h=1, step_w=2, padding_w=0, padding_h=0, norm=norm, group=width // 16)
 
-                    self.height_encoders_first_group_1 = conv_block(in_channels=width // 2, out_channels=width // 2, kernel_h=2, kernel_w=1, step_h=2, step_w=1, padding_w=0, padding_h=0, norm=norm, group=width // 2)
+                    self.height_encoders_first_group_1 = conv_block(in_channels=width // 2, out_channels=width // 2, kernel_h=2, kernel_w=1, step_h=2, step_w=1, padding_w=0, padding_h=0, norm=norm, group=width // 16)
 
-                    self.width_encoders_first_group_2 = conv_block(in_channels=width // 2, out_channels=width // 2, kernel_h=1, kernel_w=3, step_h=1, step_w=2, padding_w=1, padding_h=0, norm=norm, group=width // 2)
+                    self.width_encoders_first_group_2 = conv_block(in_channels=width // 2, out_channels=width // 2, kernel_h=1, kernel_w=3, step_h=1, step_w=2, padding_w=1, padding_h=0, norm=norm, group=width // 8)
 
-                    self.height_encoders_first_group_2 = conv_block(in_channels=width // 2, out_channels=width // 2, kernel_h=3, kernel_w=1, step_h=2, step_w=1, padding_w=0, padding_h=1, norm=norm, group=width // 2)
+                    self.height_encoders_first_group_2 = conv_block(in_channels=width // 2, out_channels=width // 2, kernel_h=3, kernel_w=1, step_h=2, step_w=1, padding_w=0, padding_h=1, norm=norm, group=width // 8)
 
-                    self.width_encoders_first_group_3 = conv_block(in_channels=width // 2, out_channels=width // 2, kernel_h=1, kernel_w=5, step_h=1, step_w=2, padding_w=2, padding_h=0, norm=norm, group=width // 2)
+                    self.width_encoders_first_group_3 = conv_block(in_channels=width // 2, out_channels=width // 2, kernel_h=1, kernel_w=5, step_h=1, step_w=2, padding_w=2, padding_h=0, norm=norm, group=width // 4)
 
-                    self.height_encoders_first_group_3 = conv_block(in_channels=width // 2, out_channels=width // 2, kernel_h=5, kernel_w=1, step_h=2, step_w=1, padding_w=0, padding_h=2, norm=norm, group=width // 2)
+                    self.height_encoders_first_group_3 = conv_block(in_channels=width // 2, out_channels=width // 2, kernel_h=5, kernel_w=1, step_h=2, step_w=1, padding_w=0, padding_h=2, norm=norm, group=width // 4)
 
                     self.width_encoders_first_group_4 = conv_block(in_channels=width // 2, out_channels=width // 2, kernel_h=1, kernel_w=7, step_h=1, step_w=2, padding_w=3, padding_h=0, norm=norm, group=width // 2)
 
@@ -236,19 +236,19 @@ class SOASNet_v3(nn.Module):
 
                     encoders_output_channels_side = encoders_output_channels_side // 2
 
-                    self.width_encoders_group_1.append(conv_block(in_channels=encoders_output_channels_side, out_channels=encoders_output_channels_side, kernel_h=1, kernel_w=2, step_h=1, step_w=2, padding_w=0, padding_h=0, norm=norm, group=encoders_output_channels_side))
+                    self.width_encoders_group_1.append(conv_block(in_channels=encoders_output_channels_side, out_channels=encoders_output_channels_side, kernel_h=1, kernel_w=2, step_h=1, step_w=2, padding_w=0, padding_h=0, norm=norm, group=encoders_output_channels_side // 8))
 
-                    self.width_encoders_group_2.append(conv_block(in_channels=encoders_output_channels_side, out_channels=encoders_output_channels_side, kernel_h=1, kernel_w=3, step_h=1, step_w=2, padding_w=1, padding_h=0, norm=norm, group=encoders_output_channels_side))
+                    self.width_encoders_group_2.append(conv_block(in_channels=encoders_output_channels_side, out_channels=encoders_output_channels_side, kernel_h=1, kernel_w=3, step_h=1, step_w=2, padding_w=1, padding_h=0, norm=norm, group=encoders_output_channels_side // 4))
 
-                    self.width_encoders_group_3.append(conv_block(in_channels=encoders_output_channels_side, out_channels=encoders_output_channels_side, kernel_h=1, kernel_w=5, step_h=1, step_w=2, padding_w=2, padding_h=0, norm=norm, group=encoders_output_channels_side))
+                    self.width_encoders_group_3.append(conv_block(in_channels=encoders_output_channels_side, out_channels=encoders_output_channels_side, kernel_h=1, kernel_w=5, step_h=1, step_w=2, padding_w=2, padding_h=0, norm=norm, group=encoders_output_channels_side // 2))
 
                     self.width_encoders_group_4.append(conv_block(in_channels=encoders_output_channels_side, out_channels=encoders_output_channels_side, kernel_h=1, kernel_w=7, step_h=1, step_w=2, padding_w=3, padding_h=0, norm=norm, group=encoders_output_channels_side))
 
-                    self.height_encoders_group_1.append(conv_block(in_channels=encoders_output_channels_side, out_channels=encoders_output_channels_side, kernel_h=2, kernel_w=1, step_h=2, step_w=1, padding_w=0, padding_h=0, norm=norm, group=encoders_output_channels_side))
+                    self.height_encoders_group_1.append(conv_block(in_channels=encoders_output_channels_side, out_channels=encoders_output_channels_side, kernel_h=2, kernel_w=1, step_h=2, step_w=1, padding_w=0, padding_h=0, norm=norm, group=encoders_output_channels_side // 8))
 
-                    self.height_encoders_group_2.append(conv_block(in_channels=encoders_output_channels_side, out_channels=encoders_output_channels_side, kernel_h=3, kernel_w=1, step_h=2, step_w=1, padding_w=0, padding_h=1, norm=norm, group=encoders_output_channels_side))
+                    self.height_encoders_group_2.append(conv_block(in_channels=encoders_output_channels_side, out_channels=encoders_output_channels_side, kernel_h=3, kernel_w=1, step_h=2, step_w=1, padding_w=0, padding_h=1, norm=norm, group=encoders_output_channels_side // 4))
 
-                    self.height_encoders_group_3.append(conv_block(in_channels=encoders_output_channels_side, out_channels=encoders_output_channels_side, kernel_h=5, kernel_w=1, step_h=2, step_w=1, padding_w=0, padding_h=2, norm=norm, group=encoders_output_channels_side))
+                    self.height_encoders_group_3.append(conv_block(in_channels=encoders_output_channels_side, out_channels=encoders_output_channels_side, kernel_h=5, kernel_w=1, step_h=2, step_w=1, padding_w=0, padding_h=2, norm=norm, group=encoders_output_channels_side // 2))
 
                     self.height_encoders_group_4.append(conv_block(in_channels=encoders_output_channels_side, out_channels=encoders_output_channels_side, kernel_h=7, kernel_w=1, step_h=2, step_w=1, padding_w=0, padding_h=3, norm=norm, group=encoders_output_channels_side))
 
@@ -274,19 +274,19 @@ class SOASNet_v3(nn.Module):
 
             if self.mode == 'low_rank_attn':
 
-                self.width_decoders_group_1.append(conv_block(in_channels=self.encoders_side_output_channels[- (i + 1)], out_channels=self.encoders_side_output_channels[- (i + 2)], kernel_h=2, kernel_w=1, step_h=2, step_w=1, padding_w=0, padding_h=0, norm=norm, group=self.encoders_side_output_channels[- (i + 2)]))
+                self.width_decoders_group_1.append(conv_block(in_channels=self.encoders_side_output_channels[- (i + 1)], out_channels=self.encoders_side_output_channels[- (i + 2)], kernel_h=2, kernel_w=1, step_h=2, step_w=1, padding_w=0, padding_h=0, norm=norm, group=self.encoders_side_output_channels[- (i + 2)] // 8))
 
-                self.width_decoders_group_2.append(conv_block(in_channels=self.encoders_side_output_channels[- (i + 1)], out_channels=self.encoders_side_output_channels[- (i + 2)], kernel_h=3, kernel_w=1, step_h=2, step_w=1, padding_w=0, padding_h=1, norm=norm, group=self.encoders_side_output_channels[- (i + 2)]))
+                self.width_decoders_group_2.append(conv_block(in_channels=self.encoders_side_output_channels[- (i + 1)], out_channels=self.encoders_side_output_channels[- (i + 2)], kernel_h=3, kernel_w=1, step_h=2, step_w=1, padding_w=0, padding_h=1, norm=norm, group=self.encoders_side_output_channels[- (i + 2)] // 4))
 
-                self.width_decoders_group_3.append(conv_block(in_channels=self.encoders_side_output_channels[- (i + 1)], out_channels=self.encoders_side_output_channels[- (i + 2)], kernel_h=5, kernel_w=1, step_h=2, step_w=1, padding_w=0, padding_h=2, norm=norm, group=self.encoders_side_output_channels[- (i + 2)]))
+                self.width_decoders_group_3.append(conv_block(in_channels=self.encoders_side_output_channels[- (i + 1)], out_channels=self.encoders_side_output_channels[- (i + 2)], kernel_h=5, kernel_w=1, step_h=2, step_w=1, padding_w=0, padding_h=2, norm=norm, group=self.encoders_side_output_channels[- (i + 2)] // 2))
 
                 self.width_decoders_group_4.append(conv_block(in_channels=self.encoders_side_output_channels[- (i + 1)], out_channels=self.encoders_side_output_channels[- (i + 2)], kernel_h=7, kernel_w=1, step_h=2, step_w=1, padding_w=0, padding_h=3, norm=norm, group=self.encoders_side_output_channels[- (i + 2)]))
 
-                self.height_decoders_group_1.append(conv_block(in_channels=self.encoders_side_output_channels[- (i + 1)], out_channels=self.encoders_side_output_channels[- (i + 2)], kernel_h=1, kernel_w=2, step_h=1, step_w=2, padding_w=0, padding_h=0, norm=norm, group=self.encoders_side_output_channels[- (i + 2)]))
+                self.height_decoders_group_1.append(conv_block(in_channels=self.encoders_side_output_channels[- (i + 1)], out_channels=self.encoders_side_output_channels[- (i + 2)], kernel_h=1, kernel_w=2, step_h=1, step_w=2, padding_w=0, padding_h=0, norm=norm, group=self.encoders_side_output_channels[- (i + 2)] // 8))
 
-                self.height_decoders_group_2.append(conv_block(in_channels=self.encoders_side_output_channels[- (i + 1)], out_channels=self.encoders_side_output_channels[- (i + 2)], kernel_h=1, kernel_w=3, step_h=1, step_w=2, padding_w=1, padding_h=0, norm=norm, group=self.encoders_side_output_channels[- (i + 2)]))
+                self.height_decoders_group_2.append(conv_block(in_channels=self.encoders_side_output_channels[- (i + 1)], out_channels=self.encoders_side_output_channels[- (i + 2)], kernel_h=1, kernel_w=3, step_h=1, step_w=2, padding_w=1, padding_h=0, norm=norm, group=self.encoders_side_output_channels[- (i + 2)] // 4))
 
-                self.height_decoders_group_3.append(conv_block(in_channels=self.encoders_side_output_channels[- (i + 1)], out_channels=self.encoders_side_output_channels[- (i + 2)], kernel_h=1, kernel_w=5, step_h=1, step_w=2, padding_w=2, padding_h=0, norm=norm, group=self.encoders_side_output_channels[- (i + 2)]))
+                self.height_decoders_group_3.append(conv_block(in_channels=self.encoders_side_output_channels[- (i + 1)], out_channels=self.encoders_side_output_channels[- (i + 2)], kernel_h=1, kernel_w=5, step_h=1, step_w=2, padding_w=2, padding_h=0, norm=norm, group=self.encoders_side_output_channels[- (i + 2)] // 2))
 
                 self.height_decoders_group_4.append(conv_block(in_channels=self.encoders_side_output_channels[- (i + 1)], out_channels=self.encoders_side_output_channels[- (i + 2)], kernel_h=1, kernel_w=7, step_h=1, step_w=2, padding_w=3, padding_h=0, norm=norm, group=self.encoders_side_output_channels[- (i + 2)]))
 
