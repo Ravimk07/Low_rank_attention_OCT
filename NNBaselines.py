@@ -602,7 +602,7 @@ class MSFPAttentionUNet(nn.Module):
 
 class SegNet(nn.Module):
     #
-    def __init__(self, in_ch, width, depth, norm, n_classes, dropout, side_output):
+    def __init__(self, in_ch, width, depth, n_classes, dropout, side_output, norm='bn'):
         #
         super(SegNet, self).__init__()
         #

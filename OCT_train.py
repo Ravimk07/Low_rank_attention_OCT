@@ -16,10 +16,11 @@ from tensorboardX import SummaryWriter
 from torch.autograd import grad
 # ================================================
 from NNBaselines import SegNet
-from SecondOrderAttentionStripNet import SOASNet
-from SOASNet_v2 import SOASNet_v2
-from SOASNet_v3 import SOASNet_v3
-from SOASNet_v4 import SOASNet_v4
+from RelayNet import ReLayNet
+from SOASNet_basic import SOASNet
+from SOASNet_large_scale import SOASNet_ls
+from SOASNet_multi_attention import SOASNet_ma
+from SOASNet_very_efficient import SOASNet_efficinet
 from adamW import AdamW
 # =============================
 from NNUtils import getData_OCT
@@ -117,23 +118,27 @@ def trainSingleModel(model_name,
 
     elif model_name == 'Segnet':
 
-        model = SegNet(in_ch=input_channel, width=width, norm=norm, depth=depth, n_classes=no_class, dropout=True, side_output=False).to(device=device)
+        model = SegNet(in_ch=32, width=width, norm=norm, depth=4, n_classes=no_class, dropout=True, side_output=False).to(device=device)
 
-    elif model_name == 'TripleNet':
+    elif model_name == 'SOASNet':
 
         model = SOASNet(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='low_rank_attn', side_output=False, downsampling_limit=depth_limit).to(device=device)
 
-    elif model_name == 'TripleNet_v2':
+    elif model_name == 'SOASNet_large_kernel':
 
-        model = SOASNet_v2(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='low_rank_attn', side_output=False, downsampling_limit=depth_limit).to(device=device)
+        model = SOASNet_ls(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='low_rank_attn', side_output=False, downsampling_limit=depth_limit).to(device=device)
 
-    elif model_name == 'TripleNet_v3':
+    elif model_name == 'SOASNet_multi_attn':
 
-        model = SOASNet_v3(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='low_rank_attn', side_output=False, downsampling_limit=depth_limit).to(device=device)
+        model = SOASNet_ma(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='low_rank_attn', side_output=False, downsampling_limit=depth_limit).to(device=device)
 
-    elif model_name == 'TripleNet_v4':
+    elif model_name == 'SOASNet_efficient':
 
-        model = SOASNet_v4(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='low_rank_attn', side_output=False, downsampling_limit=depth_limit).to(device=device)
+        model = SOASNet_efficinet(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='low_rank_attn', side_output=False, downsampling_limit=depth_limit).to(device=device)
+
+    # elif model_name == 'RelayNet':
+
+        # model = ReLayNet().to(device=device)
 
     # ==================================
     training_amount = len(train_dataset)
