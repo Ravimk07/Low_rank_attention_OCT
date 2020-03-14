@@ -23,6 +23,7 @@ from RelayNet import ReLayNet
 from SOASNet_basic import SOASNet
 from SOASNet_large_scale import SOASNet_ls
 from SOASNet_multi_attention import SOASNet_ma
+from SOASNet_very_large_scale import SOASNet_vls
 
 from adamW import AdamW
 # =============================
@@ -135,9 +136,9 @@ def trainSingleModel(model_name,
 
         model = SOASNet_ma(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='low_rank_attn', side_output=False, downsampling_limit=depth_limit).to(device=device)
 
-    # elif model_name == 'SOASNet_efficient':
+    elif model_name == 'SOASNet_very_large_kernel':
 
-        # model = SOASNet_efficinet(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='low_rank_attn', side_output=False, downsampling_limit=depth_limit).to(device=device)
+        model = SOASNet_vls(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='low_rank_attn', side_output=False, downsampling_limit=depth_limit).to(device=device)
 
     # elif model_name == 'RelayNet':
 

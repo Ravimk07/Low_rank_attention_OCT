@@ -8,9 +8,9 @@ torch.backends.cudnn.benchmark = False
 
 if __name__ == '__main__':
     #
-    trainModels(model='unet',
+    trainModels(model='SOASNet_multi_attn',
                 input_dim=1,
-                epochs=300,
+                epochs=100,
                 width=16,
                 depth=4,
                 depth_limit=6,
@@ -21,8 +21,8 @@ if __name__ == '__main__':
                 shuffle=True,
                 data_augmentation='all',
                 loss='dice',
-                norm='in',
-                log='MICCAI_2020',
+                norm='bn',
+                log='MICCAI_2020_03_14',
                 class_no=2,
                 cluster=True)
 
