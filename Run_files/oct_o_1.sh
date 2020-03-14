@@ -1,4 +1,4 @@
-#$ -l tmem=8G
+#$ -l tmem=6G
 #$ -l gpu=true
 #$ -S /bin/bash
 #$ -j y
