@@ -122,7 +122,7 @@ def trainSingleModel(model_name,
 
     elif model_name == 'Segnet':
 
-        model = SegNet(in_ch=64, width=width, norm=norm, depth=4, n_classes=no_class, dropout=True, side_output=False).to(device=device)
+        model = SegNet(in_ch=input_channel, width=64, norm=norm, depth=4, n_classes=no_class, dropout=True, side_output=False).to(device=device)
 
     elif model_name == 'SOASNet':
 
