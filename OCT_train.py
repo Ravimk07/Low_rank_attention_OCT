@@ -16,11 +16,14 @@ from tensorboardX import SummaryWriter
 from torch.autograd import grad
 # ================================================
 from NNBaselines import SegNet
+
+from Unet import UNet
 from RelayNet import ReLayNet
+
 from SOASNet_basic import SOASNet
 from SOASNet_large_scale import SOASNet_ls
 from SOASNet_multi_attention import SOASNet_ma
-from SOASNet_very_efficient import SOASNet_efficinet
+
 from adamW import AdamW
 # =============================
 from NNUtils import getData_OCT
@@ -114,11 +117,11 @@ def trainSingleModel(model_name,
 
     if model_name == 'unet':
 
-        model = SOASNet(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='unet', side_output=False, downsampling_limit=depth_limit).to(device=device)
+        model = UNet(n_channels=1, n_classes=1, bilinear=False).to(device=device)
 
     elif model_name == 'Segnet':
 
-        model = SegNet(in_ch=32, width=width, norm=norm, depth=4, n_classes=no_class, dropout=True, side_output=False).to(device=device)
+        model = SegNet(in_ch=64, width=width, norm=norm, depth=4, n_classes=no_class, dropout=True, side_output=False).to(device=device)
 
     elif model_name == 'SOASNet':
 
@@ -132,9 +135,9 @@ def trainSingleModel(model_name,
 
         model = SOASNet_ma(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='low_rank_attn', side_output=False, downsampling_limit=depth_limit).to(device=device)
 
-    elif model_name == 'SOASNet_efficient':
+    # elif model_name == 'SOASNet_efficient':
 
-        model = SOASNet_efficinet(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='low_rank_attn', side_output=False, downsampling_limit=depth_limit).to(device=device)
+        # model = SOASNet_efficinet(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='low_rank_attn', side_output=False, downsampling_limit=depth_limit).to(device=device)
 
     # elif model_name == 'RelayNet':
 
