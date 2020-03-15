@@ -18,12 +18,15 @@ from torch.autograd import grad
 from NNBaselines import SegNet
 
 from Unet import UNet
+from u_net_2 import UNet2
 from RelayNet import ReLayNet
 
 from SOASNet_basic import SOASNet
 from SOASNet_large_scale import SOASNet_ls
 from SOASNet_multi_attention import SOASNet_ma
 from SOASNet_very_large_scale import SOASNet_vls
+from SOASNet_segnet_back import SOASNet_segnet
+from SOASNet_segnet_relay_net import SOASNet_segnet_skip
 
 from adamW import AdamW
 # =============================
@@ -118,11 +121,13 @@ def trainSingleModel(model_name,
 
     if model_name == 'unet':
 
-        model = UNet(n_channels=1, n_classes=1, bilinear=False).to(device=device)
+        model = UNet(n_channels=1, n_classes=1, bilinear=True).to(device=device)
+
+        # model = UNet2(in_channels=1, n_classes=1, depth=4, wf=32, padding=False, batch_norm=True, up_mode='upconv').to(device=device)
 
     elif model_name == 'Segnet':
 
-        model = SegNet(in_ch=input_channel, width=64, norm=norm, depth=4, n_classes=no_class, dropout=True, side_output=False).to(device=device)
+        model = SegNet(in_ch=input_channel, width=width, norm=norm, depth=4, n_classes=no_class, dropout=True, side_output=False).to(device=device)
 
     elif model_name == 'SOASNet':
 
@@ -140,9 +145,17 @@ def trainSingleModel(model_name,
 
         model = SOASNet_vls(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='low_rank_attn', side_output=False, downsampling_limit=depth_limit).to(device=device)
 
-    # elif model_name == 'RelayNet':
+    elif model_name == 'SOASNet_segnet':
 
-        # model = ReLayNet().to(device=device)
+        model = SOASNet_segnet(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='low_rank_attn', side_output=False, downsampling_limit=depth_limit).to(device=device)
+
+    elif model_name == 'SOASNet_segnet_skip':
+
+        model = SOASNet_segnet_skip(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='low_rank_attn', side_output=False, downsampling_limit=depth_limit).to(device=device)
+
+    elif model_name == 'RelayNet':
+
+        model = SOASNet_segnet_skip(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='relaynet', side_output=False, downsampling_limit=depth_limit).to(device=device)
 
     # ==================================
     training_amount = len(train_dataset)

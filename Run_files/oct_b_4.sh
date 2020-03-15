@@ -1,7 +1,7 @@
-#$ -l tmem=12G
+#$ -l tmem=8G
 #$ -l gpu=true
 #$ -S /bin/bash
 #$ -j y
 #$ -wd /cluster/project0/CityScapes/projects_codes/MICCAI_2020_OCT/Experiments
 
-~/anaconda3/bin/python baseline_unet_no_aug.py
+~/anaconda3/bin/python baseline_relaynet_in.py

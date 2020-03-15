@@ -276,6 +276,18 @@ class segnet_decoder(nn.Module):
         return outputs
 
 
+class unpool_layer(nn.Module):
+    def __init__(self):
+        super(unpool_layer, self).__init__()
+        # self.convs_block = conv_block(in_channels, out_channels, step=1, norm=mode)
+        self.unpool = nn.MaxUnpool2d(2, 2)
+
+    def forward(self, inputs, indices, output_shape):
+        outputs = self.unpool(input=inputs, indices=indices, output_size=output_shape)
+        # outputs = self.convs_block(outputs)
+        return outputs
+
+
 class skip_connection(nn.Module):
 
     def __init__(self, in_channels, out_channels, s, norm):

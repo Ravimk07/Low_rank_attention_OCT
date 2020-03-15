@@ -8,7 +8,7 @@ torch.backends.cudnn.benchmark = False
 
 if __name__ == '__main__':
     #
-    trainModels(model='Segnet',
+    trainModels(model='RelayNet',
                 input_dim=1,
                 epochs=50,
                 width=16,
@@ -19,9 +19,9 @@ if __name__ == '__main__':
                 l_r_s=True,
                 train_batch=8,
                 shuffle=True,
-                data_augmentation='none',
+                data_augmentation='all',
                 loss='dice',
-                norm='bn',
+                norm='in',
                 log='MICCAI_2020_03_15',
                 class_no=2,
                 cluster=True)
