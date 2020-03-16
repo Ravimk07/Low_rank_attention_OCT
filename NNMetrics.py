@@ -37,10 +37,10 @@ def preprocessing_accuracy(label_true, label_pred, n_class):
     label_pred = np.asarray(label_pred, dtype='int8')
     label_true = np.asarray(label_true, dtype='int8')
 
-    mask = (label_true >= 0) & (label_true < n_class) & (label_true != 7)
+    # mask = (label_true >= 0) & (label_true < n_class) & (label_true != 7)
 
-    label_true = label_true[mask].astype(int)
-    label_pred = label_pred[mask].astype(int)
+    # label_true = label_true[mask].astype(int)
+    # label_pred = label_pred[mask].astype(int)
 
     return label_pred, label_true
 
@@ -74,6 +74,31 @@ def segmentation_scores(label_trues, label_preds, n_class):
     fwavacc = (freq[freq > 0] * iu[freq > 0]).sum()
 
     return mean_iu
+
+
+def intersectionAndUnion(imPred, imLab, numClass):
+
+    imPred = np.asarray(imPred).copy()
+    imLab = np.asarray(imLab).copy()
+
+    imPred += 1
+    imLab += 1
+    # Remove classes from unlabeled pixels in gt image.
+    # We should not penalize detections in unlabeled portions of the image.
+    imPred = imPred * (imLab > 0)
+
+    # Compute area intersection:
+    intersection = imPred * (imPred == imLab)
+    (area_intersection, _) = np.histogram(intersection, bins=numClass, range=(1, numClass))
+
+    # Compute area union:
+    (area_pred, _) = np.histogram(imPred, bins=numClass, range=(1, numClass))
+    (area_lab, _) = np.histogram(imLab, bins=numClass, range=(1, numClass))
+    area_union = area_pred + area_lab - area_intersection
+
+    iou_metric = area_intersection / area_union
+
+    return iou_metric.mean()
 # ==================================================================================
 
 

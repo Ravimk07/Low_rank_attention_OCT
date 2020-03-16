@@ -18,7 +18,7 @@ import torchvision.transforms.functional as transform
 from copy import deepcopy
 from torch import autograd
 from torch.autograd import Variable
-from NNMetrics import segmentation_scores, f1_score, hd95, preprocessing_accuracy
+from NNMetrics import segmentation_scores, f1_score, hd95, preprocessing_accuracy, intersectionAndUnion
 from PIL import Image
 from torch.utils import data
 # ================================================================================================
@@ -104,7 +104,7 @@ def create_model(model_type, device, student_mode=True):
     return model
 
 
-def getData_OCT(data_directory, train_batchsize, shuffle_mode, augmentation):
+def getData_OCT(data_directory, train_batchsize, shuffle_mode, augmentation_train, augmentation_test):
 
     train_image_folder = data_directory + 'train/images'
     train_label_folder = data_directory + 'train/masks'
@@ -118,10 +118,10 @@ def getData_OCT(data_directory, train_batchsize, shuffle_mode, augmentation):
     test_image_folder_2 = data_directory + 'test_2/images'
     test_label_folder_2 = data_directory + 'test_2/masks'
 
-    train_dataset = CustomDataset_OCT(train_image_folder, train_label_folder, teacher_student=False, transforms=augmentation)
-    validate_dataset = CustomDataset_OCT(validate_image_folder, validate_label_folder, teacher_student=False, transforms=augmentation)
-    test_dataset_1 = CustomDataset_OCT(test_image_folder_1, test_label_folder_1, teacher_student=False, transforms=augmentation)
-    test_dataset_2 = CustomDataset_OCT(test_image_folder_2, test_label_folder_2, teacher_student=False, transforms=augmentation)
+    train_dataset = CustomDataset_OCT(train_image_folder, train_label_folder, teacher_student=False, transforms=augmentation_train)
+    validate_dataset = CustomDataset_OCT(validate_image_folder, validate_label_folder, teacher_student=False, transforms=augmentation_test)
+    test_dataset_1 = CustomDataset_OCT(test_image_folder_1, test_label_folder_1, teacher_student=False, transforms=augmentation_test)
+    test_dataset_2 = CustomDataset_OCT(test_image_folder_2, test_label_folder_2, teacher_student=False, transforms=augmentation_test)
 
     num_cores = 4
 
@@ -169,6 +169,10 @@ class CustomDataset_OCT(torch.utils.data.Dataset):
             #
         label = label.reshape(1, height, width)
         image = image.reshape(1, height, width)
+        #
+        # if label.max() > 1.0:
+        #     #
+        #     label = label + 1.0
         #
         # get the name of the file:
         labelname = all_images[index]
@@ -301,7 +305,10 @@ def evaluate(data, model, device, class_no):
                 #
                 _, testoutput = torch.max(testoutput, dim=1)
                 #
-            mean_iu_ = segmentation_scores(testlabel.cpu().detach().numpy(), testoutput.cpu().detach().numpy(), class_no)
+            # mean_iu_ = segmentation_scores(testlabel.cpu().detach().numpy(), testoutput.cpu().detach().numpy(), class_no)
+
+            mean_iu_ = intersectionAndUnion(testoutput.cpu().detach(), testlabel.cpu().detach(), class_no)
+
             f1_, recall_, precision_ = f1_score(testlabel.cpu().detach().numpy(), testoutput.cpu().detach().numpy(), class_no)
 
             f1 += f1_
@@ -359,14 +366,16 @@ def test(data_1, data_2, model, device, class_no, save_location):
             if class_no == 2:
                 #
                 testoutput = torch.sigmoid(testoutput_original.view(1, h, w))
+
                 testoutput = (testoutput > 0.5).float()
+
                 data_1_testoutputs.append(testoutput)
                 #
             else:
                 #
-                _, testoutput_original = torch.max(testoutput_original, dim=1)
-
-            mean_iu_ = segmentation_scores(testlabel.cpu().detach().numpy(), testoutput.cpu().detach().numpy(), class_no)
+                _, testoutput = torch.max(testoutput_original, dim=1)
+                #
+            mean_iu_ = intersectionAndUnion(testoutput.cpu().detach(), testlabel.cpu().detach(), class_no)
 
             f1_, recall_, precision_ = f1_score(testlabel.cpu().detach().numpy(), testoutput.cpu().detach().numpy(), class_no)
 
@@ -460,9 +469,12 @@ def test(data_1, data_2, model, device, class_no, save_location):
                 #
             else:
                 #
-                _, testoutput_original = torch.max(testoutput_original, dim=1)
+                _, testoutput = torch.max(testoutput_original, dim=1)
+                data_2_testoutputs.append(testoutput)
 
-            mean_iu_ = segmentation_scores(testlabel.cpu().detach().numpy(), testoutput.cpu().detach().numpy(), class_no)
+            # mean_iu_ = segmentation_scores(testlabel.cpu().detach().numpy(), testoutput.cpu().detach().numpy(), class_no)
+
+            mean_iu_ = intersectionAndUnion(testoutput.cpu().detach(), testlabel.cpu().detach(), class_no)
 
             f1_, recall_, precision_ = f1_score(testlabel.cpu().detach().numpy(), testoutput.cpu().detach().numpy(), class_no)
 

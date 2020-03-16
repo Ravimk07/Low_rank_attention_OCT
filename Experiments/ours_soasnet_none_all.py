@@ -8,7 +8,7 @@ torch.backends.cudnn.benchmark = False
 
 if __name__ == '__main__':
     #
-    trainModels(model='SOASNet_very_large_kernel',
+    trainModels(model='SOASNet',
                 data_set='ours',
                 input_dim=1,
                 epochs=50,

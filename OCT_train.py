@@ -11,15 +11,14 @@ import torch.nn.functional as F
 from torch.optim import lr_scheduler
 from NNLoss import dice_loss
 from NNMetrics import segmentation_scores, f1_score
+from NNMetrics import intersectionAndUnion
 from NNUtils import evaluate, test
 from tensorboardX import SummaryWriter
 from torch.autograd import grad
 # ================================================
-from NNBaselines import SegNet
+from NNBaselines import SegNet, AttentionUNet
 
 from Unet import UNet
-from u_net_2 import UNet2
-from RelayNet import ReLayNet
 
 from SOASNet_basic import SOASNet
 from SOASNet_large_scale import SOASNet_ls
@@ -27,6 +26,7 @@ from SOASNet_multi_attention import SOASNet_ma
 from SOASNet_very_large_scale import SOASNet_vls
 from SOASNet_segnet_back import SOASNet_segnet
 from SOASNet_segnet_relay_net import SOASNet_segnet_skip
+from SOASNet_single_scale import SOASNet_ss
 
 from adamW import AdamW
 # =============================
@@ -34,41 +34,85 @@ from NNUtils import getData_OCT
 # =============================
 
 
-def trainModels(repeat, input_dim, train_batch, model, epochs, width, l_r, l_r_s, shuffle, data_augmentation, loss, norm, log, class_no, depth, depth_limit, cluster=False):
+def trainModels(repeat, data_set, input_dim, train_batch, model, epochs, width, l_r, l_r_s, shuffle, loss, norm, log, class_no, depth, depth_limit, data_augmentation_train, data_augmentation_test, cluster=False):
     #
     if cluster is False:
         #
-        data_directory = '/home/moucheng/projects_data/OCT/'
+        if data_set == 'duke':
+            #
+            data_directory = '/home/moucheng/projects_data/OCT/duke_dataset/'
+            #
+        else:
+            #
+            data_directory = '/home/moucheng/projects_data/OCT/our_data/'
         #
     else:
         #
         data_directory = '/cluster/project0/CityScapes/projects_data/OCT/'
         #
-    trainloader, train_dataset, validate_dataset, test_dataset_1, test_dataset_2 = getData_OCT(data_directory, train_batch, shuffle_mode=shuffle, augmentation=data_augmentation)
+    # trainloader, train_dataset, validate_dataset, test_dataset_1, test_dataset_2 = getData_OCT(data_directory, train_batch, shuffle_mode=shuffle, augmentation=data_augmentation)
     #
-    for j in range(1, repeat+1, 1):
+    if cluster is False and data_set == 'duke':
         #
-        trained_model = trainSingleModel(model_name=model,
-                                         epochs=epochs,
-                                         width=width,
-                                         lr=l_r,
-                                         repeat=str(j),
-                                         lr_scedule=l_r_s,
-                                         train_dataset=train_dataset,
-                                         train_batch=train_batch,
-                                         train_loader=trainloader,
-                                         validate_data=validate_dataset,
-                                         test_data_1=test_dataset_1,
-                                         test_data_2=test_dataset_2,
-                                         data_augmentation=data_augmentation,
-                                         shuffle=shuffle,
-                                         loss=loss,
-                                         norm=norm,
-                                         log=log,
-                                         no_class=class_no,
-                                         input_channel=input_dim,
-                                         depth=depth,
-                                         depth_limit=depth_limit)
+        for j in range(1, 6, 1):
+            #
+            data_directory = '/home/moucheng/projects_data/OCT/duke_dataset/' + str(j) + '/'
+            #
+            trainloader, train_dataset, validate_dataset, test_dataset_1, test_dataset_2 = getData_OCT(data_directory, train_batch, shuffle_mode=shuffle, augmentation_train=data_augmentation_train, augmentation_test=data_augmentation_test)
+            #
+            trained_model = trainSingleModel(model_name=model,
+                                             epochs=epochs,
+                                             width=width,
+                                             lr=l_r,
+                                             repeat=str(j),
+                                             lr_scedule=l_r_s,
+                                             train_dataset=train_dataset,
+                                             train_batch=train_batch,
+                                             train_loader=trainloader,
+                                             data_name=data_set,
+                                             validate_data=validate_dataset,
+                                             test_data_1=test_dataset_1,
+                                             test_data_2=test_dataset_2,
+                                             data_augmentation_train=data_augmentation_train,
+                                             data_augmentation_test=data_augmentation_test,
+                                             shuffle=shuffle,
+                                             loss=loss,
+                                             norm=norm,
+                                             log=log,
+                                             no_class=class_no,
+                                             input_channel=input_dim,
+                                             depth=depth,
+                                             depth_limit=depth_limit)
+
+    else:
+        #
+        trainloader, train_dataset, validate_dataset, test_dataset_1, test_dataset_2 = getData_OCT(data_directory, train_batch, shuffle_mode=shuffle, augmentation_train=data_augmentation_train, augmentation_test=data_augmentation_test)
+        #
+        for j in range(1, repeat+1, 1):
+            #
+            trained_model = trainSingleModel(model_name=model,
+                                             epochs=epochs,
+                                             width=width,
+                                             lr=l_r,
+                                             repeat=str(j),
+                                             lr_scedule=l_r_s,
+                                             train_dataset=train_dataset,
+                                             train_batch=train_batch,
+                                             train_loader=trainloader,
+                                             data_name=data_set,
+                                             validate_data=validate_dataset,
+                                             test_data_1=test_dataset_1,
+                                             test_data_2=test_dataset_2,
+                                             data_augmentation_train=data_augmentation_train,
+                                             data_augmentation_test=data_augmentation_test,
+                                             shuffle=shuffle,
+                                             loss=loss,
+                                             norm=norm,
+                                             log=log,
+                                             no_class=class_no,
+                                             input_channel=input_dim,
+                                             depth=depth,
+                                             depth_limit=depth_limit)
 
 
 def trainSingleModel(model_name,
@@ -81,7 +125,9 @@ def trainSingleModel(model_name,
                      lr_scedule,
                      train_dataset,
                      train_batch,
-                     data_augmentation,
+                     data_name,
+                     data_augmentation_train,
+                     data_augmentation_test,
                      train_loader,
                      validate_data,
                      test_data_1,
@@ -129,6 +175,10 @@ def trainSingleModel(model_name,
 
         model = SegNet(in_ch=input_channel, width=width, norm=norm, depth=4, n_classes=no_class, dropout=True, side_output=False).to(device=device)
 
+    elif model_name == 'SOASNet_single':
+
+        model = SOASNet_ss(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='low_rank_attn', side_output=False, downsampling_limit=depth_limit).to(device=device)
+
     elif model_name == 'SOASNet':
 
         model = SOASNet(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='low_rank_attn', side_output=False, downsampling_limit=depth_limit).to(device=device)
@@ -157,18 +207,24 @@ def trainSingleModel(model_name,
 
         model = SOASNet_segnet_skip(in_ch=input_channel, width=width, depth=depth, norm=norm, n_classes=no_class, mode='relaynet', side_output=False, downsampling_limit=depth_limit).to(device=device)
 
+    elif model_name == 'attn_unet':
+
+        model = AttentionUNet(in_ch=input_channel, width=width, visulisation=False, class_no=no_class).to(device=device)
+
     # ==================================
     training_amount = len(train_dataset)
     iteration_amount = training_amount // train_batch
     iteration_amount = iteration_amount - 1
 
     model_name = model_name + '_Epoch_' + str(epochs) + \
+                 '_Dataset_' + data_name + \
                  '_Batch_' + str(train_batch) + \
                  '_Width_' + str(width) + \
                  '_Loss_' + loss + \
                  '_Norm_' + norm + \
                  '_ShuffleTraining_' + str(shuffle) + \
-                 '_Data_Augmentation_' + data_augmentation + '_' + \
+                 '_Data_Augmentation_Train_' + data_augmentation_train + '_' + \
+                 '_Data_Augmentation_Test_' + data_augmentation_test + '_' + \
                  '_lr_' + str(lr) + \
                  '_Repeat_' + str(repeat)
 
@@ -188,7 +244,7 @@ def trainSingleModel(model_name,
         running_loss = 0
 
         # i: index of mini batch
-        if 'mixup' not in data_augmentation:
+        if 'mixup' not in data_augmentation_train:
 
             for j, (images, labels, imagename) in enumerate(train_loader):
 
@@ -223,7 +279,11 @@ def trainSingleModel(model_name,
 
                 else:
 
-                    main_loss = nn.CrossEntropyLoss(reduction='mean')(torch.softmax(outputs_logits, dim=1), labels.squeeze(1))
+                    # print(outputs_logits.shape)
+
+                    # print(labels.shape)
+
+                    main_loss = nn.CrossEntropyLoss(reduction='mean', ignore_index=8)(torch.softmax(outputs_logits, dim=1), labels.squeeze(1))
 
                 running_loss += main_loss
 
@@ -247,11 +307,21 @@ def trainSingleModel(model_name,
 
                         _, outputs = torch.max(outputs_logits, dim=1)
 
-                        outputs = outputs.unsqueeze(1)
+                        # outputs = outputs.unsqueeze(1)
 
-                    mean_iu = segmentation_scores(labels.cpu().detach().numpy(), outputs.cpu().detach().numpy(), no_class)
+                        labels = labels.squeeze(1)
+
+                    # print(outputs.shape)
+
+                    # print(labels.shape)
+
+                    # mean_iu = segmentation_scores(labels.cpu().detach().numpy(), outputs.cpu().detach().numpy(), no_class)
+
+                    mean_iu = intersectionAndUnion(outputs.cpu().detach(), labels.cpu().detach(), no_class)
 
                     validate_iou, validate_f1, validate_recall, validate_precision = evaluate(data=validate_data, model=model, device=device, class_no=no_class)
+
+                    # print(validate_iou.type)
 
                     print(
                         'Step [{}/{}], '

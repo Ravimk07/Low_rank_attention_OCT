@@ -4,4 +4,4 @@
 #$ -j y
 #$ -wd /cluster/project0/CityScapes/projects_codes/MICCAI_2020_OCT/Experiments
 
-~/anaconda3/bin/python ours_soasnet_all_all.py
+~/anaconda3/bin/python ours_soasnet_none_all.py

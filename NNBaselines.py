@@ -902,3 +902,137 @@ class SegNet(nn.Module):
 #             return out, task_representation_1, task_representation_2, task_representation_3, task_representation_4, task_representation_5
 #         else:
 #             return out
+
+class Attention_block(nn.Module):
+    # Attention Unet
+    # references:
+    # Learn to Pay Attention, ICLR 2018
+    # Attention U-Net: Learning Where to Look for the Pancreas, MIDL 2018
+    def __init__(self, F_g, F_l):
+        super(Attention_block, self).__init__()
+        self.W_g = nn.Sequential(
+            nn.Conv2d(F_g, F_l // 2, kernel_size=1, stride=1, padding=0, bias=True),
+            nn.BatchNorm2d(F_l // 2, affine=False)
+        )
+
+        self.W_x = nn.Sequential(
+            nn.Conv2d(F_l, F_l // 2, kernel_size=1, stride=1, padding=0, bias=True),
+            nn.BatchNorm2d(F_l // 2, affine=False)
+        )
+
+        self.psi = nn.Sequential(
+            nn.Conv2d(F_l // 2, 1, kernel_size=1, stride=1, padding=0, bias=True),
+            nn.BatchNorm2d(1, affine=False),
+            nn.Sigmoid()
+        )
+
+        self.relu = nn.ReLU(inplace=True)
+
+    def forward(self, g, x):
+        g1 = self.W_g(g)
+        x1 = self.W_x(x)
+        psi = self.relu(g1 + x1)
+        psi = self.psi(psi)
+        return psi
+
+
+def basic_double_conv(in_channels, out_channels, step):
+    return nn.Sequential(
+        nn.Conv2d(in_channels, out_channels, 3, stride=step,
+                  padding=1, groups=1, bias=False),
+        nn.BatchNorm2d(out_channels, affine=True),
+        nn.ReLU(inplace=True),
+        nn.Conv2d(out_channels, out_channels, 3, stride=1,
+                  padding=1, groups=1, bias=False),
+        nn.BatchNorm2d(out_channels, affine=True),
+        nn.ReLU(inplace=True)
+    )
+
+
+class AttentionUNet(nn.Module):
+
+    def __init__(self, in_ch, class_no, width=64, visulisation=False):
+        super(AttentionUNet, self).__init__()
+        self.attention_visual = visulisation
+        # class_no = 2
+        if class_no > 2:
+            self.final_in = class_no
+        else:
+            self.final_in = 1
+        #
+        self.w1 = width
+        self.w2 = width * 2
+        self.w3 = width * 4
+        self.w4 = width * 8
+        #
+        self.dconv_down1 = basic_double_conv(in_ch, self.w1, step=1)
+        self.dconv_down2 = basic_double_conv(self.w1, self.w2, step=2)
+        self.dconv_down3 = basic_double_conv(self.w2, self.w3, step=2)
+        self.dconv_down4 = basic_double_conv(self.w3, self.w4, step=2)
+        #
+        self.bridge = basic_double_conv(self.w4, self.w4, step=1)
+        self.dconv_up3 = basic_double_conv(self.w3 + self.w4, self.w3, step=1)
+        self.dconv_up2 = basic_double_conv(self.w2 + self.w3, self.w2, step=1)
+        self.dconv_up1 = basic_double_conv(self.w1 + self.w2, self.w1, step=1)
+        #
+        self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+        #
+        self.a3_match_res = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+        self.a2_match_res = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+        self.a1_match_res = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+        #
+        self.attention_3 = Attention_block(self.w4, self.w3)
+        #
+        self.attention_2 = Attention_block(self.w3, self.w2)
+        #
+        self.attention_1 = Attention_block(self.w2, self.w1)
+        #
+        self.conv_last = nn.Conv2d(width, self.final_in, 1, bias=False)
+
+    def forward(self, x):
+        #
+        if self.attention_visual is True:
+            attention_weights = []
+            trunk_features = []
+        #
+        s1 = self.dconv_down1(x)
+        s2 = self.dconv_down2(s1)
+        s3 = self.dconv_down3(s2)
+        s4 = self.dconv_down4(s3)
+        s4 = self.bridge(s4)
+        #
+        attn_3 = self.attention_3(self.a3_match_res(s4), s3)
+        a_s3 = attn_3 * s3 + s3
+        #
+        if self.attention_visual is True:
+            attention_weights.append(attn_3)
+            trunk_features.append(s3)
+        #
+        output = torch.cat([a_s3, self.upsample(s4)], dim=1)
+        output = self.dconv_up3(output)
+        #
+        attn_2 = self.attention_2(self.a2_match_res(output), s2)
+        a_s2 = attn_2 * s2 + s2
+        #
+        if self.attention_visual is True:
+            attention_weights.append(attn_2)
+            trunk_features.append(s2)
+        #
+        output = torch.cat([a_s2, self.upsample(output)], dim=1)
+        output = self.dconv_up2(output)
+        #
+        attn_1 = self.attention_1(self.a1_match_res(output), s1)
+        a_s1 = attn_1 * s1 + s1
+        #
+        if self.attention_visual is True:
+            attention_weights.append(attn_1)
+            trunk_features.append(s1)
+        #
+        output = torch.cat([a_s1, self.upsample(output)], dim=1)
+        output = self.dconv_up1(output)
+        output = self.conv_last(output)
+        #
+        if self.attention_visual is False:
+            return output
+        else:
+            return output, attention_weights, trunk_features
