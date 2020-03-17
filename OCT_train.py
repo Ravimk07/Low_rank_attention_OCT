@@ -48,7 +48,14 @@ def trainModels(repeat, data_set, input_dim, train_batch, model, epochs, width, 
         #
     else:
         #
-        data_directory = '/cluster/project0/CityScapes/projects_data/OCT/'
+        if data_set == 'duke':
+            #
+            data_directory = '/cluster/project0/CityScapes/projects_data/OCT/duke/'
+            #
+        else:
+            #
+            data_directory = '/cluster/project0/CityScapes/projects_data/OCT/'
+
         #
     # trainloader, train_dataset, validate_dataset, test_dataset_1, test_dataset_2 = getData_OCT(data_directory, train_batch, shuffle_mode=shuffle, augmentation=data_augmentation)
     #
@@ -57,6 +64,38 @@ def trainModels(repeat, data_set, input_dim, train_batch, model, epochs, width, 
         for j in range(1, 6, 1):
             #
             data_directory = '/home/moucheng/projects_data/OCT/duke_dataset/' + str(j) + '/'
+            #
+            trainloader, train_dataset, validate_dataset, test_dataset_1, test_dataset_2 = getData_OCT(data_directory, train_batch, shuffle_mode=shuffle, augmentation_train=data_augmentation_train, augmentation_test=data_augmentation_test)
+            #
+            trained_model = trainSingleModel(model_name=model,
+                                             epochs=epochs,
+                                             width=width,
+                                             lr=l_r,
+                                             repeat=str(j),
+                                             lr_scedule=l_r_s,
+                                             train_dataset=train_dataset,
+                                             train_batch=train_batch,
+                                             train_loader=trainloader,
+                                             data_name=data_set,
+                                             validate_data=validate_dataset,
+                                             test_data_1=test_dataset_1,
+                                             test_data_2=test_dataset_2,
+                                             data_augmentation_train=data_augmentation_train,
+                                             data_augmentation_test=data_augmentation_test,
+                                             shuffle=shuffle,
+                                             loss=loss,
+                                             norm=norm,
+                                             log=log,
+                                             no_class=class_no,
+                                             input_channel=input_dim,
+                                             depth=depth,
+                                             depth_limit=depth_limit)
+
+    elif cluster is True and data_set == 'duke':
+        #
+        for j in range(1, 6, 1):
+            #
+            data_directory = '/cluster/project0/CityScapes/projects_data/OCT/duke/' + str(j) + '/'
             #
             trainloader, train_dataset, validate_dataset, test_dataset_1, test_dataset_2 = getData_OCT(data_directory, train_batch, shuffle_mode=shuffle, augmentation_train=data_augmentation_train, augmentation_test=data_augmentation_test)
             #
@@ -167,7 +206,7 @@ def trainSingleModel(model_name,
 
     if model_name == 'unet':
 
-        model = UNet(n_channels=1, n_classes=1, bilinear=True).to(device=device)
+        model = UNet(n_channels=input_channel, n_classes=no_class, bilinear=True).to(device=device)
 
         # model = UNet2(in_channels=1, n_classes=1, depth=4, wf=32, padding=False, batch_norm=True, up_mode='upconv').to(device=device)
 
