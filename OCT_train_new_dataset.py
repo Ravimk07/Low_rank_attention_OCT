@@ -12,7 +12,7 @@ from torch.optim import lr_scheduler
 from NNLoss import dice_loss
 from NNMetrics import segmentation_scores, f1_score
 from NNMetrics import intersectionAndUnion
-from NNUtils import evaluate, test
+from NNUtils import evaluate, test, test1
 from tensorboardX import SummaryWriter
 from torch.autograd import grad
 # ================================================
@@ -38,6 +38,7 @@ def trainModels(repeat,
                 data_set,
                 input_dim,
                 train_batch,
+                data_directory,
                 model,
                 epochs,
                 width,
@@ -51,124 +52,39 @@ def trainModels(repeat,
                 depth,
                 depth_limit,
                 data_augmentation_train,
-                data_augmentation_test,
-                cluster=False):
+                data_augmentation_test):
 
-    if cluster is False:
+    trainloader, train_dataset, validate_dataset, test_dataset = getData_OCT(data_directory,
+                                                                             train_batch,
+                                                                             data_set,
+                                                                             shuffle_mode=shuffle,
+                                                                             augmentation_train=data_augmentation_train,
+                                                                             augmentation_test=data_augmentation_test)
 
-        if data_set == 'duke':
+    for j in range(1, repeat+1, 1):
 
-            data_directory = '/home/moucheng/projects_data/OCT/duke_dataset/'
-
-        else:
-
-            data_directory = '/home/moucheng/projects_data/OCT/our_data/'
-
-    else:
-
-        if data_set == 'duke':
-
-            data_directory = '/cluster/project0/CityScapes/projects_data/OCT/duke/'
-
-        else:
-
-            data_directory = '/cluster/project0/CityScapes/projects_data/OCT/'
-
-    # trainloader, train_dataset, validate_dataset, test_dataset_1, test_dataset_2 = getData_OCT(data_directory, train_batch, shuffle_mode=shuffle, augmentation=data_augmentation)
-    #
-    if cluster is False and data_set == 'duke':
-        #
-        for j in range(1, 6, 1):
-            #
-            data_directory = '/home/moucheng/projects_data/OCT/duke_dataset/' + str(j) + '/'
-            #
-            trainloader, train_dataset, validate_dataset, test_dataset_1, test_dataset_2 = getData_OCT(data_directory, train_batch, shuffle_mode=shuffle, augmentation_train=data_augmentation_train, augmentation_test=data_augmentation_test)
-            #
-            trained_model = trainSingleModel(model_name=model,
-                                             epochs=epochs,
-                                             width=width,
-                                             lr=l_r,
-                                             repeat=str(j),
-                                             lr_scedule=l_r_s,
-                                             train_dataset=train_dataset,
-                                             train_batch=train_batch,
-                                             train_loader=trainloader,
-                                             data_name=data_set,
-                                             validate_data=validate_dataset,
-                                             test_data_1=test_dataset_1,
-                                             test_data_2=test_dataset_2,
-                                             data_augmentation_train=data_augmentation_train,
-                                             data_augmentation_test=data_augmentation_test,
-                                             shuffle=shuffle,
-                                             loss=loss,
-                                             norm=norm,
-                                             log=log,
-                                             no_class=class_no,
-                                             input_channel=input_dim,
-                                             depth=depth,
-                                             depth_limit=depth_limit)
-
-    elif cluster is True and data_set == 'duke':
-        #
-        for j in range(1, 6, 1):
-            #
-            data_directory = '/cluster/project0/CityScapes/projects_data/OCT/duke/' + str(j) + '/'
-            #
-            trainloader, train_dataset, validate_dataset, test_dataset_1, test_dataset_2 = getData_OCT(data_directory, train_batch, shuffle_mode=shuffle, augmentation_train=data_augmentation_train, augmentation_test=data_augmentation_test)
-            #
-            trained_model = trainSingleModel(model_name=model,
-                                             epochs=epochs,
-                                             width=width,
-                                             lr=l_r,
-                                             repeat=str(j),
-                                             lr_scedule=l_r_s,
-                                             train_dataset=train_dataset,
-                                             train_batch=train_batch,
-                                             train_loader=trainloader,
-                                             data_name=data_set,
-                                             validate_data=validate_dataset,
-                                             test_data_1=test_dataset_1,
-                                             test_data_2=test_dataset_2,
-                                             data_augmentation_train=data_augmentation_train,
-                                             data_augmentation_test=data_augmentation_test,
-                                             shuffle=shuffle,
-                                             loss=loss,
-                                             norm=norm,
-                                             log=log,
-                                             no_class=class_no,
-                                             input_channel=input_dim,
-                                             depth=depth,
-                                             depth_limit=depth_limit)
-
-    else:
-        #
-        trainloader, train_dataset, validate_dataset, test_dataset_1, test_dataset_2 = getData_OCT(data_directory, train_batch, shuffle_mode=shuffle, augmentation_train=data_augmentation_train, augmentation_test=data_augmentation_test)
-        #
-        for j in range(1, repeat+1, 1):
-            #
-            trained_model = trainSingleModel(model_name=model,
-                                             epochs=epochs,
-                                             width=width,
-                                             lr=l_r,
-                                             repeat=str(j),
-                                             lr_scedule=l_r_s,
-                                             train_dataset=train_dataset,
-                                             train_batch=train_batch,
-                                             train_loader=trainloader,
-                                             data_name=data_set,
-                                             validate_data=validate_dataset,
-                                             test_data_1=test_dataset_1,
-                                             test_data_2=test_dataset_2,
-                                             data_augmentation_train=data_augmentation_train,
-                                             data_augmentation_test=data_augmentation_test,
-                                             shuffle=shuffle,
-                                             loss=loss,
-                                             norm=norm,
-                                             log=log,
-                                             no_class=class_no,
-                                             input_channel=input_dim,
-                                             depth=depth,
-                                             depth_limit=depth_limit)
+        trainSingleModel(model_name=model,
+                         epochs=epochs,
+                         width=width,
+                         lr=l_r,
+                         repeat=str(j),
+                         lr_scedule=l_r_s,
+                         train_dataset=train_dataset,
+                         train_batch=train_batch,
+                         train_loader=trainloader,
+                         data_name=data_set,
+                         validate_data=validate_dataset,
+                         test_data=test_dataset,
+                         data_augmentation_train=data_augmentation_train,
+                         data_augmentation_test=data_augmentation_test,
+                         shuffle=shuffle,
+                         loss=loss,
+                         norm=norm,
+                         log=log,
+                         no_class=class_no,
+                         input_channel=input_dim,
+                         depth=depth,
+                         depth_limit=depth_limit)
 
 
 def trainSingleModel(model_name,
@@ -186,8 +102,7 @@ def trainSingleModel(model_name,
                      data_augmentation_test,
                      train_loader,
                      validate_data,
-                     test_data_1,
-                     test_data_2,
+                     test_data,
                      shuffle,
                      loss,
                      norm,
@@ -521,12 +436,18 @@ def trainSingleModel(model_name,
             raise
     pass
 
-    test_iou_1, test_f1_1, test_recall_1, test_precision_1, mse_1, test_iou_2, test_f1_2, test_recall_2, test_precision_2, mse_2, outputs_1, outputs_2 = test(data_1=test_data_1,
-                                                                                                                                                              data_2=test_data_2,
-                                                                                                                                                              model=model,
-                                                                                                                                                              device=device,
-                                                                                                                                                              class_no=no_class,
-                                                                                                                                                              save_location=save_results_folder)
+    # test_iou_1, test_f1_1, test_recall_1, test_precision_1, mse_1, test_iou_2, test_f1_2, test_recall_2, test_precision_2, mse_2, outputs_1, outputs_2 = test(data_1=test_data_1,
+    #                                                                                                                                                           data_2=test_data_2,
+    #                                                                                                                                                           model=model,
+    #                                                                                                                                                           device=device,
+    #                                                                                                                                                           class_no=no_class,
+    #                                                                                                                                                           save_location=save_results_folder)
+
+    test_iou_1, test_f1_1, test_recall_1, test_precision_1, mse_1 = test1(data=test_data,
+                                                                         model=model,
+                                                                         device=device,
+                                                                         class_no=no_class,
+                                                                         save_location=save_results_folder)
 
     print(
         'test iou data 1: {:.4f}, '
@@ -539,16 +460,16 @@ def trainSingleModel(model_name,
                                                  test_recall_1,
                                                  test_precision_1))
 
-    print(
-        'test iou data 2: {:.4f}, '
-        'test mse data 2: {:.4f}, '
-        'test f1 data 2: {:.4f},'
-        'test recall data 2: {:.4f}, '
-        'test precision data 2: {:.4f}, '.format(test_iou_2,
-                                                 mse_2,
-                                                 test_f1_2,
-                                                 test_recall_2,
-                                                 test_precision_2))
+    # print(
+    #     'test iou data 2: {:.4f}, '
+    #     'test mse data 2: {:.4f}, '
+    #     'test f1 data 2: {:.4f},'
+    #     'test recall data 2: {:.4f}, '
+    #     'test precision data 2: {:.4f}, '.format(test_iou_2,
+    #                                              mse_2,
+    #                                              test_f1_2,
+    #                                              test_recall_2,
+    #                                              test_precision_2))
 
     print('\nTesting finished and results saved.\n')
 
