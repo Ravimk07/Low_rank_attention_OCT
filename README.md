@@ -5,7 +5,7 @@ Paper link: https://www.medrxiv.org/content/10.1101/2020.08.13.20174250v2
 1. Prepare your data and save them as pictures in .tiff
 
 2. Customize your dataset into this structure:
-
+```
 -- data_directory
    -- train
       -- images
@@ -16,6 +16,7 @@ Paper link: https://www.medrxiv.org/content/10.1101/2020.08.13.20174250v2
    -- test
       -- images
       -- masks
+```
 
 3. Change data path in Run.py
 
