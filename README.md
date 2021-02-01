@@ -18,7 +18,7 @@ Paper link: https://www.medrxiv.org/content/10.1101/2020.08.13.20174250v2
       -- masks
 ```
 
-3. Change data path in Run.py
+3. Change data directory in Run.py
 
 4. Fine tune your models, change hyper-parameters in Run.py
 
