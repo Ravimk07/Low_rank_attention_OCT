@@ -24,9 +24,12 @@ Paper link: https://www.medrxiv.org/content/10.1101/2020.08.13.20174250v2
 Contact: moucheng.xu.18@ucl.ac.uk 
 
 ## Citation:
+If you find the code or the README useful for your research, please cite our paper:
+```
 @article{OCTseg,
-  title={Learning To Pay Attention To Mistakes},
-  author={Xu, Mou-Cheng and P. Neil, Oxtoby and C. Alexander, Daniel and Jacob, Joseph},
-  journal={BMVC},
+  title={Bio-Inspired Attentive Segmentation of Retinal OCT imaging},
+  author={Xu*, Mou-Cheng and Lazaridis*, Georgios and S. Afgeh, Saman and Garway-Heath, David},
+  journal={OMIA workshop at MICCAI},
   year={2020},
 }
+```
